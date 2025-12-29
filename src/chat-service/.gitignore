@@ -1,0 +1,60 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+*.whl
+
+# Virtual Environment
+venv/
+ENV/
+env/
+.venv
+
+# Environment Variables (IMPORTANT: Never commit!)
+.env
+.env.local
+.env.production
+.env.*.local
+
+# Logs
+*.log
+logs/
+chat_service.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# NLTK Data (optional, can be downloaded)
+nltk_data/
+
+# Jupyter Notebooks (if any)
+.ipynb_checkpoints/
+
+# Docker
+docker-compose.override.yml
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# Temporary files
+*.tmp
+*.bak
+*.swp

@@ -1,0 +1,24 @@
+# Core dependencies (REQUIRED)
+# Using newer versions compatible with Python 3.14
+fastapi>=0.110.0
+uvicorn[standard]>=0.27.0
+pydantic>=2.6.0
+httpx>=0.27.0
+python-multipart>=0.0.9
+python-dotenv>=1.0.0
+nltk>=3.8.1
+
+# Database & Storage (REQUIRED for production)
+supabase>=2.9.0
+postgrest>=0.17.0
+
+# Optional dependencies (for enhanced features)
+# Uncomment if you need these features:
+
+# twilio>=9.0.0  # For voice call escalation
+# redis>=5.0.1  # For session management and caching
+# python-socketio>=5.11.0  # For real-time agent notifications
+
+# Advanced NLP (optional - only if using chat_engine.py instead of chat_engine_simple.py)
+# Requires Microsoft Visual C++ Build Tools on Windows
+# scikit-learn>=1.5.0
