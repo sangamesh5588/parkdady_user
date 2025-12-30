@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/colors.dart';
@@ -32,6 +34,13 @@ class _ParkingSpaceDetailsScreenState
   late AnimationController _fadeController;
   late Animation<double> _fadeAnimation;
 
+  // Urgency system variables
+  late Timer _urgencyTimer;
+  int _currentViewers = 0;
+  String _urgencyMessage = '';
+  int _availableSlotsToday = 0;
+  bool _isLoading = true;
+
   @override
   void initState() {
     super.initState();
@@ -43,12 +52,81 @@ class _ParkingSpaceDetailsScreenState
       CurvedAnimation(parent: _fadeController, curve: Curves.easeInOut),
     );
     _fadeController.forward();
+
+    // Initialize urgency system
+    _initializeUrgencySystem();
+    _startUrgencyUpdates();
   }
 
   @override
   void dispose() {
     _fadeController.dispose();
+    _urgencyTimer.cancel();
     super.dispose();
+  }
+
+  void _initializeUrgencySystem() {
+    // Simulate random viewers between 3-12
+    _currentViewers = Random().nextInt(10) + 3;
+
+    // Calculate available slots for today
+    _fetchTodayAvailability();
+
+    // Set initial urgency message
+    _updateUrgencyMessage();
+  }
+
+  void _startUrgencyUpdates() {
+    // Update viewers and messages every 5-6 seconds for smooth professional feeling
+    _urgencyTimer = Timer.periodic(Duration(seconds: 5 + Random().nextInt(2)), (timer) {
+      if (mounted) {
+        setState(() {
+          // Randomly change viewers count (±1-2 for smoother changes)
+          final change = Random().nextInt(2) + 1;
+          if (Random().nextBool()) {
+            _currentViewers = (_currentViewers + change).clamp(3, 12).toInt();
+          } else {
+            _currentViewers = (_currentViewers - change).clamp(3, 12).toInt();
+          }
+
+          _updateUrgencyMessage();
+        });
+      }
+    });
+  }
+
+  void _updateUrgencyMessage() {
+    final messages = [
+      'Only $_availableSlotsToday slots available today',
+      '${Random().nextInt(3) + 2} people just booked',
+      'Limited availability - book now',
+      '$_currentViewers others viewing now',
+      'Booking fast today',
+      '${Random().nextInt(5) + 3}min ago - spot reserved',
+      'Popular time slot',
+      'Only $_availableSlotsToday spots remaining',
+      '${Random().nextInt(4) + 3} recent bookings',
+      'High demand slot',
+      'Reserve your spot soon',
+      '${Random().nextInt(3) + 2} slots left for today',
+      'Filling up quickly',
+      'Trending spot this hour',
+      'Book before spots run out',
+    ];
+
+    _urgencyMessage = messages[Random().nextInt(messages.length)];
+  }
+
+  Future<void> _fetchTodayAvailability() async {
+    // Calculate how many slots are already booked today
+    // For now, simulate based on total spots
+    final totalSpots = widget.parkingSpace.totalSpots;
+    final bookedToday = Random().nextInt((totalSpots * 0.7).toInt());
+
+    setState(() {
+      _availableSlotsToday = (totalSpots - bookedToday).clamp(1, totalSpots).toInt();
+      _isLoading = false;
+    });
   }
 
   @override
@@ -95,8 +173,11 @@ class _ParkingSpaceDetailsScreenState
                             // Space info section
                             SpaceInfoSection(parkingSpace: widget.parkingSpace),
 
-                            // Trust indicators section
-                            _buildTrustIndicators(),
+                            // URGENCY BANNER - Live viewers and aggressive messaging
+                            _buildUrgencyBanner(),
+
+                            // Rotating urgency message
+                            _buildRotatingUrgencyMessage(),
 
                             // Host info section
                             HostInfoSection(parkingSpace: widget.parkingSpace),
@@ -200,24 +281,65 @@ class _ParkingSpaceDetailsScreenState
     );
   }
 
-  Widget _buildTrustIndicators() {
-    return Container(
-      margin: EdgeInsets.symmetric(horizontal: AppConstants.spacing16),
-      padding: EdgeInsets.all(AppConstants.spacing16),
+  // URGENCY BANNER - Live viewers count
+  Widget _buildUrgencyBanner() {
+    return AnimatedContainer(
+      duration: Duration(milliseconds: 800),
+      curve: Curves.easeInOut,
+      margin: EdgeInsets.symmetric(
+        horizontal: AppConstants.spacing16,
+        vertical: AppConstants.spacing12,
+      ),
+      padding: EdgeInsets.symmetric(
+        horizontal: AppConstants.spacing16,
+        vertical: AppConstants.spacing12,
+      ),
       decoration: BoxDecoration(
-        color: AppColors.statusSuccess.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(AppConstants.radius12),
-        border: Border.all(
-          color: AppColors.statusSuccess.withOpacity(0.2),
-          width: 1,
+        gradient: LinearGradient(
+          colors: [
+            Color(0xFF4A5568),
+            Color(0xFF2D3748),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 10,
+            offset: Offset(0, 2),
+          ),
+        ],
       ),
       child: Row(
         children: [
-          Icon(
-            Icons.verified,
-            color: AppColors.statusSuccess,
-            size: 20,
+          // Smooth pulsing dot
+          TweenAnimationBuilder(
+            tween: Tween<double>(begin: 0.4, end: 1.0),
+            duration: Duration(milliseconds: 1200),
+            curve: Curves.easeInOut,
+            builder: (context, double value, child) {
+              return Container(
+                width: 10,
+                height: 10,
+                decoration: BoxDecoration(
+                  color: Color(0xFF48BB78).withValues(alpha: value),
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Color(0xFF48BB78).withValues(alpha: value * 0.5),
+                      blurRadius: 4,
+                      spreadRadius: 1,
+                    ),
+                  ],
+                ),
+              );
+            },
+            onEnd: () {
+              // Restart animation
+              if (mounted) setState(() {});
+            },
           ),
           SizedBox(width: AppConstants.spacing12),
           Expanded(
@@ -225,24 +347,92 @@ class _ParkingSpaceDetailsScreenState
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Verified & Secure',
+                  '$_currentViewers people viewing',
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: 13,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.statusSuccess,
+                    color: Colors.white,
+                    letterSpacing: 0.2,
                   ),
                 ),
+                SizedBox(height: 4),
                 Text(
-                  '24/7 security • Instant booking • Cancellation protection',
+                  '$_availableSlotsToday slots available today',
                   style: TextStyle(
                     fontSize: 12,
-                    color: AppColors.getSecondaryText(context),
+                    fontWeight: FontWeight.w500,
+                    color: Colors.white70,
+                    letterSpacing: 0.1,
                   ),
                 ),
               ],
             ),
           ),
+          Icon(
+            Icons.visibility_outlined,
+            color: Colors.white70,
+            size: 20,
+          ),
         ],
+      ),
+    );
+  }
+
+  // ROTATING URGENCY MESSAGE
+  Widget _buildRotatingUrgencyMessage() {
+    return AnimatedSwitcher(
+      duration: Duration(milliseconds: 800),
+      transitionBuilder: (Widget child, Animation<double> animation) {
+        return FadeTransition(
+          opacity: animation,
+          child: SlideTransition(
+            position: Tween<Offset>(
+              begin: Offset(0, 0.3),
+              end: Offset.zero,
+            ).animate(CurvedAnimation(
+              parent: animation,
+              curve: Curves.easeOutCubic,
+            )),
+            child: child,
+          ),
+        );
+      },
+      child: Container(
+        key: ValueKey(_urgencyMessage),
+        margin: EdgeInsets.symmetric(
+          horizontal: AppConstants.spacing16,
+          vertical: AppConstants.spacing8,
+        ),
+        padding: EdgeInsets.all(AppConstants.spacing12),
+        decoration: BoxDecoration(
+          color: Color(0xFFFFF9F0),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: Color(0xFFFFE5CC),
+            width: 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              Icons.trending_up,
+              color: Color(0xFFFF6B35),
+              size: 18,
+            ),
+            SizedBox(width: AppConstants.spacing8),
+            Expanded(
+              child: Text(
+                _urgencyMessage,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF2D3748),
+                  letterSpacing: 0.1,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -452,6 +642,10 @@ class _ParkingSpaceDetailsScreenState
   void _handleBookNow() {
     if (!_canBook()) return;
 
+    debugPrint('🚗 BOOKING FLOW DEBUG:');
+    debugPrint('  ParkingSpace.pricePerHour from database: ₹${widget.parkingSpace.pricePerHour}');
+    debugPrint('  WARNING: If this is NOT ₹100, then the issue is in data loading!');
+
     // Navigate to booking confirmation screen
     Navigator.of(context).push(
       MaterialPageRoute(
@@ -469,6 +663,15 @@ class _ParkingSpaceDetailsScreenState
 
   double _calculateTotalPrice() {
     final totalHours = _calculateTotalHours();
-    return totalHours * widget.parkingSpace.pricePerHour;
+    final parkingFee = totalHours * widget.parkingSpace.pricePerHour;
+
+    // Debug logging to track price calculation
+    debugPrint('🔍 PRICE CALCULATION DEBUG:');
+    debugPrint('  Total hours: $totalHours');
+    debugPrint('  Price per hour: ₹${widget.parkingSpace.pricePerHour}');
+    debugPrint('  Parking fee (should be base_amount): ₹$parkingFee');
+    debugPrint('  This should be ONLY parking cost, no platform fee or GST');
+
+    return parkingFee;
   }
 }

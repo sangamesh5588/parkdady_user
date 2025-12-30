@@ -229,7 +229,7 @@ class _BookingConfirmationScreenState extends ConsumerState<BookingConfirmationS
                       SizedBox(height: AppConstants.spacing16),
                       _buildPriceRow('Parking fee', totalPrice),
                       _buildPriceRow('Platform fee', 9.0),
-                      _buildPriceRow('GST (18% on platform fee)', 9.0 * 0.18),
+                      // GST hidden as per requirement (no GST registration, but included in total)
                       Divider(height: 24),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -454,8 +454,7 @@ class _BookingConfirmationScreenState extends ConsumerState<BookingConfirmationS
 
   double _calculateFinalAmount(double basePrice) {
     final platformFee = 9.0;
-    final gst = platformFee * 0.18; // GST only on platform fee, not parking fee
-    return basePrice + platformFee + gst;
+    return basePrice + platformFee; // NO GST - just parking + platform fee
   }
 
   void _processPayment() async {
@@ -498,15 +497,13 @@ class _BookingConfirmationScreenState extends ConsumerState<BookingConfirmationS
       print('   - Host ID: $hostId');
 
       // Calculate pricing breakdown
-      final platformFee = 10.0;
-      final gst = platformFee * 0.18; // GST only on platform fee
-      final finalAmount = totalPrice + platformFee + gst;
+      final platformFee = 9.0; // Platform fee
+      final finalAmount = totalPrice + platformFee; // Total: Parking + Platform fee (NO GST)
 
       print('💰 Price Breakdown:');
       print('   - Parking Fee: ₹$totalPrice');
       print('   - Platform Fee: ₹$platformFee');
-      print('   - GST (18% on platform): ₹${gst.toStringAsFixed(2)}');
-      print('   - Final Amount: ₹${finalAmount.toStringAsFixed(2)}');
+      print('   - Final Amount (for payment, stored in DB): ₹$finalAmount');
 
       // Create booking using BookingService
       final bookingService = BookingService();
@@ -518,7 +515,7 @@ class _BookingConfirmationScreenState extends ConsumerState<BookingConfirmationS
         entryTime: startTime,
         exitTime: endTime,
         durationHours: duration,
-        baseAmount: finalAmount, // Total amount including platform fee + GST
+        baseAmount: finalAmount, // Parking + Platform fee = ₹200 + ₹9 = ₹209 (NO GST)
         paymentMethod: 'test_mode',
       );
 

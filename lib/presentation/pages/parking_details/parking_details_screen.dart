@@ -1,10 +1,11 @@
+import 'dart:async';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/colors.dart';
 import '../../../core/constants.dart';
 import '../../providers/parking_provider.dart';
 import 'widgets/image_carousel.dart';
-import 'widgets/parking_info_section.dart';
 import 'widgets/amenities_section.dart';
 import 'widgets/location_section.dart';
 
@@ -21,6 +22,67 @@ class ParkingDetailsScreen extends ConsumerStatefulWidget {
 }
 
 class _ParkingDetailsScreenState extends ConsumerState<ParkingDetailsScreen> {
+  // Urgency system variables
+  Timer? _urgencyTimer;
+  int _currentViewers = 0;
+  String _urgencyMessage = '';
+
+  @override
+  void initState() {
+    super.initState();
+    // Initialize urgency system
+    _currentViewers = Random().nextInt(10) + 3;
+    _updateUrgencyMessage();
+    _startUrgencyUpdates();
+  }
+
+  @override
+  void dispose() {
+    _urgencyTimer?.cancel();
+    super.dispose();
+  }
+
+  void _startUrgencyUpdates() {
+    // Update viewers and messages every 5-6 seconds for smooth professional feeling
+    _urgencyTimer = Timer.periodic(Duration(seconds: 5 + Random().nextInt(2)), (timer) {
+      if (mounted) {
+        setState(() {
+          // Randomly change viewers count (±1-2 for smoother changes)
+          final change = Random().nextInt(2) + 1;
+          if (Random().nextBool()) {
+            _currentViewers = (_currentViewers + change).clamp(3, 12).toInt();
+          } else {
+            _currentViewers = (_currentViewers - change).clamp(3, 12).toInt();
+          }
+
+          _updateUrgencyMessage();
+        });
+      }
+    });
+  }
+
+  void _updateUrgencyMessage() {
+    final messages = [
+      'High demand - book soon',
+      '${Random().nextInt(3) + 2} people just booked',
+      'Limited availability today',
+      '$_currentViewers others viewing now',
+      'Booking fast - secure your spot',
+      '${Random().nextInt(5) + 3}min ago - spot reserved',
+      'Popular choice this hour',
+      'Nearly at capacity',
+      '${Random().nextInt(4) + 3} active bookings',
+      'Filling up quickly',
+      'Most booked spot today',
+      'Reserve before it\'s gone',
+      '${Random().nextInt(3) + 2} slots left',
+      'In high demand now',
+      'Booking recommended',
+    ];
+
+    _urgencyMessage = messages[Random().nextInt(messages.length)];
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -124,7 +186,7 @@ class _ParkingDetailsScreenState extends ConsumerState<ParkingDetailsScreen> {
                   ),
                   SizedBox(height: AppConstants.spacing12),
 
-                  // Distance and Available Spots
+                  // Distance and Urgency Info (removed spots count)
                   Row(
                     children: [
                       _buildInfoChip(
@@ -133,13 +195,38 @@ class _ParkingDetailsScreenState extends ConsumerState<ParkingDetailsScreen> {
                         AppColors.ctaPrimary,
                       ),
                       SizedBox(width: AppConstants.spacing12),
-                      _buildInfoChip(
-                        Icons.local_parking,
-                        '${widget.parkingSpace.availableSpots} spots',
-                        widget.parkingSpace.isUrgent ? Colors.red : Colors.green,
+                      Expanded(
+                        child: AnimatedSwitcher(
+                          duration: Duration(milliseconds: 800),
+                          transitionBuilder: (Widget child, Animation<double> animation) {
+                            return FadeTransition(
+                              opacity: animation,
+                              child: SlideTransition(
+                                position: Tween<Offset>(
+                                  begin: Offset(0, 0.3),
+                                  end: Offset.zero,
+                                ).animate(CurvedAnimation(
+                                  parent: animation,
+                                  curve: Curves.easeOutCubic,
+                                )),
+                                child: child,
+                              ),
+                            );
+                          },
+                          child: _buildInfoChip(
+                            Icons.trending_up,
+                            _urgencyMessage,
+                            Color(0xFFFF6B35),
+                            key: ValueKey(_urgencyMessage),
+                          ),
+                        ),
                       ),
                     ],
                   ),
+                  SizedBox(height: AppConstants.spacing12),
+
+                  // Live viewers banner
+                  _buildLiveViewersBanner(),
                 ],
               ),
             ),
@@ -355,8 +442,9 @@ class _ParkingDetailsScreenState extends ConsumerState<ParkingDetailsScreen> {
     );
   }
 
-  Widget _buildInfoChip(IconData icon, String label, Color color) {
+  Widget _buildInfoChip(IconData icon, String label, Color color, {Key? key}) {
     return Container(
+      key: key,
       padding: EdgeInsets.symmetric(
         horizontal: 12,
         vertical: 8,
@@ -371,13 +459,94 @@ class _ParkingDetailsScreenState extends ConsumerState<ParkingDetailsScreen> {
         children: [
           Icon(icon, size: 16, color: color),
           SizedBox(width: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: color,
+          Flexible(
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: color,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLiveViewersBanner() {
+    return AnimatedContainer(
+      duration: Duration(milliseconds: 800),
+      curve: Curves.easeInOut,
+      padding: EdgeInsets.symmetric(
+        horizontal: 14,
+        vertical: 12,
+      ),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            Color(0xFF4A5568),
+            Color(0xFF2D3748),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(10),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 10,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          // Smooth pulsing dot
+          TweenAnimationBuilder(
+            tween: Tween<double>(begin: 0.4, end: 1.0),
+            duration: Duration(milliseconds: 1200),
+            curve: Curves.easeInOut,
+            builder: (context, double value, child) {
+              return Container(
+                width: 8,
+                height: 8,
+                decoration: BoxDecoration(
+                  color: Color(0xFF48BB78).withValues(alpha: value),
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Color(0xFF48BB78).withValues(alpha: value * 0.5),
+                      blurRadius: 4,
+                      spreadRadius: 1,
+                    ),
+                  ],
+                ),
+              );
+            },
+            onEnd: () {
+              // Restart animation
+              if (mounted) setState(() {});
+            },
+          ),
+          SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              '$_currentViewers people viewing',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+                letterSpacing: 0.2,
+              ),
+            ),
+          ),
+          Icon(
+            Icons.visibility_outlined,
+            color: Colors.white70,
+            size: 18,
           ),
         ],
       ),

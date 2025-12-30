@@ -508,6 +508,9 @@ class _BookingConfirmationScreenState extends ConsumerState<BookingConfirmationS
 
       // CREATE BOOKING FIRST (pending status)
       debugPrint('🔄 Creating pending booking in database...');
+      debugPrint('💰 Parking fee (base_amount): ₹${widget.totalPrice}');
+      debugPrint('💰 This should be ONLY parking cost, NOT including platform fee or GST');
+
       final booking = await bookingService.createBooking(
         listingId: widget.parkingSpace.id,
         hostId: widget.parkingSpace.ownerId,
@@ -516,7 +519,7 @@ class _BookingConfirmationScreenState extends ConsumerState<BookingConfirmationS
         entryTime: widget.startTime,
         exitTime: widget.endTime,
         durationHours: durationHours,
-        baseAmount: widget.totalPrice,
+        baseAmount: widget.totalPrice, // Should be parking fee ONLY (e.g., ₹200)
         paymentMethod: 'pending', // Will be updated after payment
       );
 

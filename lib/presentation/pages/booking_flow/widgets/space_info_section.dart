@@ -407,20 +407,7 @@ class SpaceInfoSection extends StatelessWidget {
             ],
           ),
           SizedBox(height: AppConstants.spacing20),
-          _buildEnhancedDetailRow(
-            context,
-            'Total Spots',
-            parkingSpace.totalSpots.toString(),
-            Icons.local_parking,
-          ),
-          SizedBox(height: AppConstants.spacing16),
-          _buildEnhancedDetailRow(
-            context,
-            'Available Spots',
-            parkingSpace.availableSpots.toString(),
-            Icons.check_circle,
-          ),
-          SizedBox(height: AppConstants.spacing16),
+          // Removed Total Spots and Available Spots - using urgency system instead
           _buildEnhancedDetailRow(
             context,
             'Price per Hour',

@@ -187,34 +187,76 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
 
           SizedBox(height: AppConstants.spacing16),
 
-          // Total amount
-          Container(
-            padding: EdgeInsets.all(AppConstants.spacing12),
-            decoration: BoxDecoration(
-              color: AppColors.ctaPrimary.withOpacity(0.05),
-              borderRadius: BorderRadius.circular(AppConstants.radius8),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Total Amount',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.getPrimaryText(context),
+          // Payment breakdown
+          Column(
+            children: [
+              // Parking fee
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Parking fee',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: AppColors.getSecondaryText(context),
+                    ),
                   ),
-                ),
-                Text(
-                  '₹${widget.totalPrice.toStringAsFixed(2)}',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.ctaPrimary,
+                  Text(
+                    '₹${widget.totalPrice.toStringAsFixed(2)}',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: AppColors.getPrimaryText(context),
+                    ),
                   ),
-                ),
-              ],
-            ),
+                ],
+              ),
+              SizedBox(height: AppConstants.spacing8),
+              // Platform fee (includes GST, but don't show GST separately)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Platform fee',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: AppColors.getSecondaryText(context),
+                    ),
+                  ),
+                  Text(
+                    '₹9.00',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: AppColors.getPrimaryText(context),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: AppConstants.spacing12),
+              Divider(),
+              SizedBox(height: AppConstants.spacing8),
+              // Total amount (parking + platform fee + GST silently included)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Total Amount',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.getPrimaryText(context),
+                    ),
+                  ),
+                  Text(
+                    '₹${_calculateTotalAmount.toStringAsFixed(2)}',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.ctaPrimary,
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
         ],
       ),
@@ -443,7 +485,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
           Opacity(
             opacity: 0.5,
             child: CustomButton(
-              text: 'Pay ₹${widget.totalPrice.toStringAsFixed(2)} (Disabled)',
+              text: 'Pay ₹${_calculateTotalAmount.toStringAsFixed(2)} (Disabled)',
               onPressed: null, // Disabled during testing
               icon: Icons.lock,
             ),
@@ -468,14 +510,24 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
     _handlePaymentSuccess(mockResponse);
   }
 
+  // Calculate total amount including platform fee and GST
+  double get _calculateTotalAmount {
+    const platformFee = 9.0;
+    const gstRate = 0.18; // 18% GST on platform fee
+    final gst = platformFee * gstRate;
+    return widget.totalPrice + platformFee + gst; // Parking + Platform fee + GST
+  }
+
   void _handlePayment(BuildContext context) async {
     setState(() => _isProcessingPayment = true);
 
     try {
+      final totalAmount = _calculateTotalAmount;
+
       // Create order
       final paymentService = ref.read(paymentServiceProvider);
       final orderData = paymentService.createMockOrder(
-        amount: widget.totalPrice,
+        amount: totalAmount,
         notes: {
           'parking_space_id': widget.parkingSpace.id,
           'booking_date': widget.selectedDate.toIso8601String(),
@@ -488,7 +540,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
       paymentService.openCheckout(
         context: context,
         key: AppConfig.razorpayKey,
-        amount: widget.totalPrice,
+        amount: totalAmount,
         name: 'Parking App',
         description: 'Parking Booking Payment',
         orderId: orderData['id'],

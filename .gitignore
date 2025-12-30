@@ -49,5 +49,12 @@ app.*.map.json
 .env.*
 !.env.example
 
+# Keystore files - CRITICAL: Never commit these!
+*.jks
+*.keystore
+android/key.properties
+android/*.jks
+android/*.keystore
+
 # Claude MCP configuration (contains sensitive keys)
 .claude/mcp.json
