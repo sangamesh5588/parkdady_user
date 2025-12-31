@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../core/colors.dart';
 import '../../../core/constants.dart';
 import '../../providers/auth_provider.dart';
@@ -389,21 +390,39 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                                   ),
                                   children: [
                                     const TextSpan(text: 'I agree to the '),
-                                    TextSpan(
-                                      text: 'Terms & Conditions',
-                                      style: TextStyle(
-                                        color: AppColors.ctaPrimary,
-                                        fontWeight: AppConstants.fontWeightSemiBold,
-                                        decoration: TextDecoration.underline,
+                                    WidgetSpan(
+                                      child: GestureDetector(
+                                        onTap: () async {
+                                          final Uri url = Uri.parse('https://splendorous-strudel-cead22.netlify.app/terms/');
+                                          await launchUrl(url, mode: LaunchMode.inAppWebView);
+                                        },
+                                        child: Text(
+                                          'Terms & Conditions',
+                                          style: TextStyle(
+                                            color: AppColors.ctaPrimary,
+                                            fontWeight: AppConstants.fontWeightSemiBold,
+                                            decoration: TextDecoration.underline,
+                                            fontSize: AppConstants.fontSize14,
+                                          ),
+                                        ),
                                       ),
                                     ),
                                     const TextSpan(text: ' and '),
-                                    TextSpan(
-                                      text: 'Privacy Policy',
-                                      style: TextStyle(
-                                        color: AppColors.ctaPrimary,
-                                        fontWeight: AppConstants.fontWeightSemiBold,
-                                        decoration: TextDecoration.underline,
+                                    WidgetSpan(
+                                      child: GestureDetector(
+                                        onTap: () async {
+                                          final Uri url = Uri.parse('https://splendorous-strudel-cead22.netlify.app/privacy/');
+                                          await launchUrl(url, mode: LaunchMode.inAppWebView);
+                                        },
+                                        child: Text(
+                                          'Privacy Policy',
+                                          style: TextStyle(
+                                            color: AppColors.ctaPrimary,
+                                            fontWeight: AppConstants.fontWeightSemiBold,
+                                            decoration: TextDecoration.underline,
+                                            fontSize: AppConstants.fontSize14,
+                                          ),
+                                        ),
                                       ),
                                     ),
                                   ],

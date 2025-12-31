@@ -373,28 +373,26 @@ class _AboutScreenState extends ConsumerState<AboutScreen> {
     );
   }
 
-  void _showTermsOfService() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => _buildLegalScreen(
-        title: 'Terms of Service',
-        content: _getTermsOfServiceContent(),
-      ),
-    );
+  void _showTermsOfService() async {
+    final Uri url = Uri.parse('https://splendorous-strudel-cead22.netlify.app/terms/');
+    if (!await launchUrl(url, mode: LaunchMode.inAppWebView)) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Could not open Terms of Service')),
+        );
+      }
+    }
   }
 
-  void _showPrivacyPolicy() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => _buildLegalScreen(
-        title: 'Privacy Policy',
-        content: _getPrivacyPolicyContent(),
-      ),
-    );
+  void _showPrivacyPolicy() async {
+    final Uri url = Uri.parse('https://splendorous-strudel-cead22.netlify.app/privacy/');
+    if (!await launchUrl(url, mode: LaunchMode.inAppWebView)) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Could not open Privacy Policy')),
+        );
+      }
+    }
   }
 
   void _showLicenseAgreement() {
@@ -557,85 +555,6 @@ class _AboutScreenState extends ConsumerState<AboutScreen> {
     );
   }
 
-  Widget _getTermsOfServiceContent() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildLegalContentSection(
-          'Acceptance of Terms',
-          'By accessing and using the Parking App, you accept and agree to be bound by the terms and provision of this agreement.',
-        ),
-        _buildLegalContentSection(
-          'Use License',
-          'Permission is granted to temporarily use the Parking App for personal, non-commercial transitory viewing only.',
-        ),
-        _buildLegalContentSection(
-          'User Responsibilities',
-          'You agree to use the app only for lawful purposes and in accordance with these terms. You are responsible for maintaining the confidentiality of your account.',
-        ),
-        _buildLegalContentSection(
-          'Booking Terms',
-          'All bookings are subject to availability and confirmation. Cancellations must be made according to our cancellation policy.',
-        ),
-        _buildLegalContentSection(
-          'Payment Terms',
-          'All payments are processed securely. You agree to pay all charges associated with your bookings.',
-        ),
-        _buildLegalContentSection(
-          'Disclaimer',
-          'The information on this app is provided on an "as is" basis. We disclaim all warranties, express or implied.',
-        ),
-        _buildLegalContentSection(
-          'Contact Information',
-          'If you have any questions about these Terms of Service, please contact us at support@parkingapp.com.',
-        ),
-      ],
-    );
-  }
-
-  Widget _getPrivacyPolicyContent() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildLegalContentSection(
-          'Information We Collect',
-          'We collect information you provide directly to us, such as when you create an account, make a booking, or contact us for support.',
-        ),
-        _buildLegalContentSection(
-          'How We Use Your Information',
-          'We use the information we collect to provide, maintain, and improve our services, process transactions, and communicate with you.',
-        ),
-        _buildLegalContentSection(
-          'Information Sharing',
-          'We do not sell, trade, or otherwise transfer your personal information to third parties without your consent, except as described in this policy.',
-        ),
-        _buildLegalContentSection(
-          'Data Security',
-          'We implement appropriate security measures to protect your personal information against unauthorized access, alteration, disclosure, or destruction.',
-        ),
-        _buildLegalContentSection(
-          'Data Retention',
-          'We retain your information for as long as necessary to provide our services and comply with legal obligations.',
-        ),
-        _buildLegalContentSection(
-          'Your Rights',
-          'You have the right to access, update, or delete your personal information. Contact us to exercise these rights.',
-        ),
-        _buildLegalContentSection(
-          'Cookies',
-          'We use cookies and similar technologies to enhance your experience and analyze app usage.',
-        ),
-        _buildLegalContentSection(
-          'Changes to This Policy',
-          'We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new policy on this page.',
-        ),
-        _buildLegalContentSection(
-          'Contact Us',
-          'If you have any questions about this Privacy Policy, please contact us at privacy@parkingapp.com.',
-        ),
-      ],
-    );
-  }
 
   Widget _getLicenseAgreementContent() {
     return Column(

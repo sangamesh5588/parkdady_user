@@ -173,45 +173,59 @@ class _BookingHistoryScreenState extends ConsumerState<BookingHistoryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.primaryBackground,
-      appBar: AppBar(
+    return PopScope(
+      canPop: true,
+      onPopInvokedWithResult: (didPop, result) {
+        // Handle back button press (both system and app bar back button)
+        if (didPop) {
+          // Navigation was handled automatically
+          return;
+        }
+        // If for some reason pop didn't work, force it
+        if (mounted) {
+          Navigator.of(context).pop();
+        }
+      },
+      child: Scaffold(
         backgroundColor: AppColors.primaryBackground,
-        elevation: 0,
-        title: Text(
-          'Booking History',
-          style: TextStyle(
-            color: AppColors.textPrimary,
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: AppColors.textPrimary),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        actions: [
-          if (_bookings.isNotEmpty)
-            IconButton(
-              icon: Icon(Icons.filter_list, color: AppColors.textPrimary),
-              onPressed: () => _showFilterBottomSheet(context),
+        appBar: AppBar(
+          backgroundColor: AppColors.primaryBackground,
+          elevation: 0,
+          title: Text(
+            'Booking History',
+            style: TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
             ),
-        ],
-      ),
-      body: SafeArea(
-        child: _isLoading
-            ? Center(
-                child: CircularProgressIndicator(
-                  color: AppColors.ctaPrimary,
-                ),
-              )
-            : _bookings.isEmpty
-                ? _buildEmptyState()
-                : RefreshIndicator(
-                    onRefresh: _refreshBookings,
+          ),
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back, color: AppColors.textPrimary),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+          actions: [
+            if (_bookings.isNotEmpty)
+              IconButton(
+                icon: Icon(Icons.filter_list, color: AppColors.textPrimary),
+                onPressed: () => _showFilterBottomSheet(context),
+              ),
+          ],
+        ),
+        body: SafeArea(
+          child: _isLoading
+              ? Center(
+                  child: CircularProgressIndicator(
                     color: AppColors.ctaPrimary,
-                    child: _buildBookingsList(),
                   ),
+                )
+              : _bookings.isEmpty
+                  ? _buildEmptyState()
+                  : RefreshIndicator(
+                      onRefresh: _refreshBookings,
+                      color: AppColors.ctaPrimary,
+                      child: _buildBookingsList(),
+                    ),
+        ),
       ),
     );
   }
