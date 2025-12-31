@@ -93,6 +93,9 @@ dependencies:
   # Speech to Text (Voice Search)
   speech_to_text: ^7.0.0
 
+  # WebView for in-app browser
+  webview_flutter: ^4.4.2
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../../../core/colors.dart';
 import '../../../core/constants.dart';
 import '../../providers/auth_provider.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../widgets/logo_widget.dart';
+import '../profile/web_view_screen.dart';
 
 class SignupScreen extends ConsumerStatefulWidget {
   const SignupScreen({super.key});
@@ -392,9 +392,15 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                                     const TextSpan(text: 'I agree to the '),
                                     WidgetSpan(
                                       child: GestureDetector(
-                                        onTap: () async {
-                                          final Uri url = Uri.parse('https://splendorous-strudel-cead22.netlify.app/terms/');
-                                          await launchUrl(url, mode: LaunchMode.inAppWebView);
+                                        onTap: () {
+                                          Navigator.of(context).push(
+                                            MaterialPageRoute(
+                                              builder: (context) => const WebViewScreen(
+                                                url: 'https://splendorous-strudel-cead22.netlify.app/terms/',
+                                                title: 'Terms & Conditions',
+                                              ),
+                                            ),
+                                          );
                                         },
                                         child: Text(
                                           'Terms & Conditions',
@@ -410,9 +416,15 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                                     const TextSpan(text: ' and '),
                                     WidgetSpan(
                                       child: GestureDetector(
-                                        onTap: () async {
-                                          final Uri url = Uri.parse('https://splendorous-strudel-cead22.netlify.app/privacy/');
-                                          await launchUrl(url, mode: LaunchMode.inAppWebView);
+                                        onTap: () {
+                                          Navigator.of(context).push(
+                                            MaterialPageRoute(
+                                              builder: (context) => const WebViewScreen(
+                                                url: 'https://splendorous-strudel-cead22.netlify.app/privacy/',
+                                                title: 'Privacy Policy',
+                                              ),
+                                            ),
+                                          );
                                         },
                                         child: Text(
                                           'Privacy Policy',

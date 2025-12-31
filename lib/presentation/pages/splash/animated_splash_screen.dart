@@ -380,11 +380,11 @@ class _AnimatedSplashScreenState extends ConsumerState<AnimatedSplashScreen>
                                 ),
                                 const SizedBox(height: 12),
                                 Text(
-                                  'Find & Book Parking Spaces',
+                                  AppConstants.appTagline,
                                   style: TextStyle(
                                     color: Colors.white.withValues(alpha: 0.95),
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w500,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w600,
                                     letterSpacing: 0.8,
                                   ),
                                 ),

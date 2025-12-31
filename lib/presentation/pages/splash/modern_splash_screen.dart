@@ -474,18 +474,18 @@ class _ModernSplashScreenState extends ConsumerState<ModernSplashScreen>
               AppConstants.appName,
               style: const TextStyle(
                 color: Colors.black,
-                fontSize: 32,
+                fontSize: 36,
                 fontWeight: FontWeight.w900,
                 letterSpacing: -0.8,
               ),
             ),
             const SizedBox(height: 8),
             Text(
-              'Find & Book Parking Spaces',
+              AppConstants.appTagline,
               style: TextStyle(
                 color: Colors.black.withOpacity(0.7),
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
                 letterSpacing: 0.5,
               ),
             ),

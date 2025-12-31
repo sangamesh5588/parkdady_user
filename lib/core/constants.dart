@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 
 class AppConstants {
   // App Information
-  static const String appName = 'Parking App';
+  static const String appName = 'Park Daddy';
+  static const String appTagline = 'The Parking Boss';
   static const String appVersion = '1.0.0';
 
   // Animation Durations (Urban Company style - smoother interactions)

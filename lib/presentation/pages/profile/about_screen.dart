@@ -5,6 +5,7 @@ import '../../../core/colors.dart';
 import '../../../core/constants.dart';
 import '../../../domain/entities/user.dart';
 import '../../providers/auth_provider.dart';
+import 'web_view_screen.dart';
 
 class AboutItem {
   final String title;
@@ -73,8 +74,10 @@ class _AboutScreenState extends ConsumerState<AboutScreen> {
 
               SizedBox(height: AppConstants.spacing32),
 
-              // Social Links
+              // Connect with Us
               _buildSocialSection(),
+
+              SizedBox(height: AppConstants.spacing24),
             ],
           ),
         ),
@@ -109,11 +112,11 @@ class _AboutScreenState extends ConsumerState<AboutScreen> {
         ),
         SizedBox(height: AppConstants.spacing8),
         Text(
-          'Find and book parking spaces easily',
+          AppConstants.appTagline,
           style: TextStyle(
             fontSize: 16,
-            color: AppColors.textSecondary,
-            fontStyle: FontStyle.italic,
+            color: AppColors.ctaPrimary,
+            fontWeight: FontWeight.w600,
           ),
           textAlign: TextAlign.center,
         ),
@@ -135,7 +138,7 @@ class _AboutScreenState extends ConsumerState<AboutScreen> {
       ),
       AboutItem(
         title: 'Developer',
-        value: 'Parking App Team',
+        value: 'Park Daddy Team',
         icon: Icons.developer_mode,
       ),
       AboutItem(
@@ -176,10 +179,6 @@ class _AboutScreenState extends ConsumerState<AboutScreen> {
         title: 'License Agreement',
         onTap: () => _showLicenseAgreement(),
       ),
-      _LegalItem(
-        title: 'Open Source Licenses',
-        onTap: () => _showOpenSourceLicenses(),
-      ),
     ];
 
     return Column(
@@ -195,51 +194,6 @@ class _AboutScreenState extends ConsumerState<AboutScreen> {
         ),
         SizedBox(height: AppConstants.spacing16),
         ...legalItems.map((item) => _buildLegalCard(item)),
-      ],
-    );
-  }
-
-  Widget _buildSocialSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Connect With Us',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
-          ),
-        ),
-        SizedBox(height: AppConstants.spacing16),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _buildSocialButton(
-              icon: Icons.web,
-              label: 'Website',
-              onTap: () => _openWebsite(),
-            ),
-            SizedBox(width: AppConstants.spacing16),
-            _buildSocialButton(
-              icon: Icons.alternate_email,
-              label: 'Twitter',
-              onTap: () => _openTwitter(),
-            ),
-            SizedBox(width: AppConstants.spacing16),
-            _buildSocialButton(
-              icon: Icons.facebook,
-              label: 'Facebook',
-              onTap: () => _openFacebook(),
-            ),
-            SizedBox(width: AppConstants.spacing16),
-            _buildSocialButton(
-              icon: Icons.share,
-              label: 'Share',
-              onTap: () => _shareApp(),
-            ),
-          ],
-        ),
       ],
     );
   }
@@ -333,66 +287,26 @@ class _AboutScreenState extends ConsumerState<AboutScreen> {
     );
   }
 
-  Widget _buildSocialButton({
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-  }) {
-    return Column(
-      children: [
-        InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(AppConstants.radius12),
-          child: Container(
-            width: 50,
-            height: 50,
-            decoration: BoxDecoration(
-              color: AppColors.secondaryBackground,
-              borderRadius: BorderRadius.circular(AppConstants.radius12),
-              border: Border.all(
-                color: AppColors.borderLight,
-                width: 1,
-              ),
-            ),
-            child: Icon(
-              icon,
-              color: AppColors.ctaPrimary,
-              size: 24,
-            ),
-          ),
+  void _showTermsOfService() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => const WebViewScreen(
+          url: 'https://splendorous-strudel-cead22.netlify.app/terms/',
+          title: 'Terms of Service',
         ),
-        SizedBox(height: AppConstants.spacing8),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            color: AppColors.textSecondary,
-          ),
-        ),
-      ],
+      ),
     );
   }
 
-  void _showTermsOfService() async {
-    final Uri url = Uri.parse('https://splendorous-strudel-cead22.netlify.app/terms/');
-    if (!await launchUrl(url, mode: LaunchMode.inAppWebView)) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Could not open Terms of Service')),
-        );
-      }
-    }
-  }
-
-  void _showPrivacyPolicy() async {
-    final Uri url = Uri.parse('https://splendorous-strudel-cead22.netlify.app/privacy/');
-    if (!await launchUrl(url, mode: LaunchMode.inAppWebView)) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Could not open Privacy Policy')),
-        );
-      }
-    }
+  void _showPrivacyPolicy() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => const WebViewScreen(
+          url: 'https://splendorous-strudel-cead22.netlify.app/privacy/',
+          title: 'Privacy Policy',
+        ),
+      ),
+    );
   }
 
   void _showLicenseAgreement() {
@@ -407,102 +321,181 @@ class _AboutScreenState extends ConsumerState<AboutScreen> {
     );
   }
 
-  void _showOpenSourceLicenses() {
-    showLicensePage(
-      context: context,
-      applicationName: AppConstants.appName,
-      applicationVersion: AppConstants.appVersion,
-      applicationIcon: Container(
-        width: 60,
-        height: 60,
-        decoration: BoxDecoration(
-          color: AppColors.ctaPrimary,
-          borderRadius: BorderRadius.circular(AppConstants.radius12),
+  Widget _buildSocialSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Connect With Us',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary,
+          ),
         ),
-        child: Icon(
-          Icons.local_parking,
-          size: 30,
-          color: AppColors.ctaOnPrimary,
+        SizedBox(height: AppConstants.spacing16),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            _buildSocialButton(
+              icon: Icons.language,
+              label: 'Website',
+              onTap: () => _openWebsite(),
+            ),
+            _buildSocialButton(
+              icon: Icons.phone,
+              label: 'Contact',
+              onTap: () => _openContact(),
+            ),
+            _buildSocialButton(
+              icon: Icons.email,
+              label: 'Email',
+              onTap: () => _openEmail(),
+            ),
+            _buildSocialButton(
+              icon: Icons.share,
+              label: 'Share',
+              onTap: () => _shareApp(),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSocialButton({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(AppConstants.radius12),
+      child: Column(
+        children: [
+          Container(
+            width: 60,
+            height: 60,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  AppColors.ctaPrimary,
+                  AppColors.ctaPrimary.withValues(alpha: 0.8),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(AppConstants.radius12),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.ctaPrimary.withValues(alpha: 0.3),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Icon(
+              icon,
+              color: Colors.white,
+              size: 28,
+            ),
+          ),
+          SizedBox(height: AppConstants.spacing8),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              color: AppColors.textSecondary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _openWebsite() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => const WebViewScreen(
+          url: 'https://splendorous-strudel-cead22.netlify.app/',
+          title: 'Park Daddy',
         ),
       ),
     );
   }
 
-  void _openWebsite() async {
-    const url = 'https://parkingapp.com'; // Replace with actual website URL
-    try {
-      // Using url_launcher to open external links
-      if (await canLaunch(url)) {
-        await launch(url);
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Could not open website')),
-        );
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Could not open website')),
-      );
-    }
+  void _openContact() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => const WebViewScreen(
+          url: 'https://splendorous-strudel-cead22.netlify.app/contact/',
+          title: 'Contact Us',
+        ),
+      ),
+    );
   }
 
-  void _openTwitter() async {
-    const url = 'https://twitter.com/parkingapp'; // Replace with actual Twitter URL
-    try {
-      if (await canLaunch(url)) {
-        await launch(url);
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Could not open Twitter')),
-        );
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Could not open Twitter')),
-      );
-    }
-  }
+  void _openEmail() async {
+    final Uri emailUri = Uri(
+      scheme: 'mailto',
+      path: 'support@parkdaddy.com',
+      queryParameters: {
+        'subject': 'Inquiry - Park Daddy App',
+        'body': 'Hi Park Daddy Team,\n\nI would like to inquire about:\n\n',
+      },
+    );
 
-  void _openFacebook() async {
-    const url = 'https://facebook.com/parkingapp'; // Replace with actual Facebook URL
     try {
-      if (await canLaunch(url)) {
-        await launch(url);
+      if (await canLaunchUrl(emailUri)) {
+        await launchUrl(emailUri);
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Could not open Facebook')),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Could not open email client'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Could not open Facebook')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Email: support@parkdaddy.com'),
+            action: SnackBarAction(
+              label: 'Copy',
+              onPressed: () {},
+            ),
+          ),
+        );
+      }
     }
   }
 
   void _shareApp() async {
-    const appUrl = 'https://play.google.com/store/apps/details?id=com.parkingapp'; // Replace with actual app URL
-    const shareText = 'Check out Parking App - Find and book parking spaces easily!\n\n$appUrl';
+    const appUrl = 'https://play.google.com/store/apps/details?id=com.parkdaddy';
+    const shareText = 'Check out Park Daddy - The Parking Boss! 🚗\n\nFind and book parking spaces easily with the best rates.\n\nDownload now: $appUrl';
 
-    try {
-      // Using share_plus package for sharing functionality
-      // For now, we'll use a simple approach with clipboard
-      // In production, you would use: Share.share(shareText);
+    if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('App link copied to clipboard!'),
+          content: const Text('Share Park Daddy with friends!'),
           action: SnackBarAction(
-            label: 'Share',
+            label: 'Copy Link',
             onPressed: () {
-              // Here you would implement actual sharing
-              // For example: Share.share(shareText);
+              // In production, implement clipboard copy or share sheet
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Link copied to clipboard!'),
+                  duration: Duration(seconds: 2),
+                ),
+              );
             },
           ),
+          duration: const Duration(seconds: 4),
         ),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Could not share app')),
       );
     }
   }

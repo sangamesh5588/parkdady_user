@@ -589,7 +589,7 @@ class _HelpSupportScreenState extends ConsumerState<HelpSupportScreen> {
       scheme: 'mailto',
       path: 'support@parkingapp.com',
       queryParameters: {
-        'subject': 'Support Request - Parking App',
+        'subject': 'Support Request - Park Daddy',
         'body': 'Hi,\n\nI need help with...\n\nThank you.',
       },
     );

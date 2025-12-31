@@ -541,7 +541,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
         context: context,
         key: AppConfig.razorpayKey,
         amount: totalAmount,
-        name: 'Parking App',
+        name: 'Park Daddy',
         description: 'Parking Booking Payment',
         orderId: orderData['id'],
         email: 'user@example.com', // Replace with actual user email

@@ -4,13 +4,13 @@ import 'package:parking/main.dart';
 import 'package:parking/presentation/widgets/logo_widget.dart';
 
 void main() {
-  testWidgets('Parking App splash screen test', (WidgetTester tester) async {
+  testWidgets('Park Daddy splash screen test', (WidgetTester tester) async {
     // Build our app and trigger a frame.
     await tester.pumpWidget(const ParkingApp());
 
     // Verify that our app starts with the splash screen.
-    expect(find.text('Parking App'), findsOneWidget);
-    expect(find.text('Smart Parking Solutions'), findsOneWidget);
+    expect(find.text('Park Daddy'), findsOneWidget);
+    expect(find.text('The Parking Boss'), findsOneWidget);
     expect(find.byType(LogoWidget), findsOneWidget);
   });
 
