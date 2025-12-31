@@ -311,12 +311,17 @@ class _BookingHistoryScreenState extends ConsumerState<BookingHistoryScreen> {
                   ),
                 ),
               ),
-              const Spacer(),
-              Text(
-                '#${booking.id}',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: AppColors.textMuted,
+              SizedBox(width: AppConstants.spacing8),
+              Flexible(
+                child: Text(
+                  '#${booking.id}',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textMuted,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.end,
                 ),
               ),
             ],
@@ -393,9 +398,9 @@ class _BookingHistoryScreenState extends ConsumerState<BookingHistoryScreen> {
               ),
               Expanded(
                 child: _buildDetailItem(
-                  icon: Icons.attach_money,
+                  icon: Icons.currency_rupee,
                   label: 'Amount',
-                  value: '\$${booking.totalAmount.toStringAsFixed(2)}',
+                  value: '₹${booking.totalAmount.toStringAsFixed(2)}',
                 ),
               ),
             ],
@@ -781,7 +786,7 @@ class _BookingHistoryScreenState extends ConsumerState<BookingHistoryScreen> {
                     ]),
                     SizedBox(height: AppConstants.spacing16),
                     _buildDetailSection('Payment', [
-                      _buildDetailRow('Total Amount', '\$${booking.totalAmount.toStringAsFixed(2)}', isHighlighted: true),
+                      _buildDetailRow('Total Amount', '₹${booking.totalAmount.toStringAsFixed(2)}', isHighlighted: true),
                     ]),
                   ],
                 ),
@@ -968,7 +973,7 @@ class _BookingHistoryScreenState extends ConsumerState<BookingHistoryScreen> {
                           ),
                         ),
                         Text(
-                          '\$${booking.totalAmount.toStringAsFixed(2)}',
+                          '₹${booking.totalAmount.toStringAsFixed(2)}',
                           style: TextStyle(
                             fontSize: AppConstants.fontSize24,
                             fontWeight: AppConstants.fontWeightBold,
