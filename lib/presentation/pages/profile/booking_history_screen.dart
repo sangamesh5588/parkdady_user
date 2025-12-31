@@ -436,8 +436,8 @@ class _BookingHistoryScreenState extends ConsumerState<BookingHistoryScreen> {
             ),
           ),
 
-          // Action buttons for active bookings
-          if (booking.status == 'active') ...[
+          // Action buttons for active and pending bookings
+          if (booking.status == 'active' || booking.status == 'pending') ...[
             SizedBox(height: AppConstants.spacing16),
             Row(
               children: [

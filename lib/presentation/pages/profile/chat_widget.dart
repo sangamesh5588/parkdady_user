@@ -46,6 +46,10 @@ class _ChatWidgetState extends State<ChatWidget> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
+    _typingAnimationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    )..repeat();
     _addWelcomeMessage();
   }
 
@@ -407,14 +411,33 @@ class _ChatWidgetState extends State<ChatWidget> with TickerProviderStateMixin {
 
   Widget _buildTypingDot(int index) {
     return AnimatedBuilder(
-      animation: AlwaysStoppedAnimation<double>(0.0),
+      animation: _typingAnimationController,
       builder: (context, child) {
-        return Container(
-          width: 8,
-          height: 8,
-          decoration: BoxDecoration(
-            color: AppColors.ctaPrimary,
-            shape: BoxShape.circle,
+        // Stagger the animation for each dot
+        final delay = index * 0.2;
+        final animation = Tween<double>(
+          begin: 0.0,
+          end: 1.0,
+        ).animate(
+          CurvedAnimation(
+            parent: _typingAnimationController,
+            curve: Interval(
+              delay,
+              delay + 0.4,
+              curve: Curves.easeInOut,
+            ),
+          ),
+        );
+
+        return Transform.translate(
+          offset: Offset(0, -6 * animation.value),
+          child: Container(
+            width: 8,
+            height: 8,
+            decoration: BoxDecoration(
+              color: AppColors.ctaPrimary.withValues(alpha: 0.3 + 0.7 * animation.value),
+              shape: BoxShape.circle,
+            ),
           ),
         );
       },
@@ -656,6 +679,7 @@ class _ChatWidgetState extends State<ChatWidget> with TickerProviderStateMixin {
   void dispose() {
     _messageController.dispose();
     _scrollController.dispose();
+    _typingAnimationController.dispose();
     super.dispose();
   }
 }
