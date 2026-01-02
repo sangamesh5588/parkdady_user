@@ -30,6 +30,10 @@ class SupabaseConfig {
       await Supabase.initialize(
         url: url,
         anonKey: anonKey,
+        authOptions: const FlutterAuthClientOptions(
+          authFlowType: AuthFlowType.pkce,
+        ),
+        debug: true,
       );
       print('✅ Supabase initialized successfully');
     } catch (e) {

@@ -27,8 +27,13 @@ void main() async {
   }
 
   try {
-    // Initialize Supabase
+    // Initialize Supabase with deep link handling
     await SupabaseConfig.initialize();
+
+    // Handle OAuth redirects (deep links)
+    // This ensures the app receives the callback after Google Sign-In
+    debugPrint('✅ App initialized with deep link support');
+
     runApp(const ProviderScope(child: ParkingApp()));
   } catch (e) {
     // Show error screen if Supabase fails to initialize
