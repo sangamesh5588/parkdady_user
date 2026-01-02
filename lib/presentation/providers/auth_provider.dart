@@ -138,6 +138,7 @@ class AuthNotifier extends StateNotifier<domain_user.User?> {
       await SupabaseConfig.client.auth.signInWithOAuth(
         supabase.OAuthProvider.google,
         redirectTo: 'io.supabase.parkingapp://login-callback',
+        authScreenLaunchMode: supabase.LaunchMode.externalApplication,
       );
       // Note: OAuth will handle the redirect and state change listener will update state
     } catch (e) {
@@ -150,6 +151,7 @@ class AuthNotifier extends StateNotifier<domain_user.User?> {
       await SupabaseConfig.client.auth.signInWithOAuth(
         supabase.OAuthProvider.apple,
         redirectTo: 'io.supabase.parkingapp://login-callback',
+        authScreenLaunchMode: supabase.LaunchMode.externalApplication,
       );
       // Note: OAuth will handle the redirect and state change listener will update state
     } catch (e) {
