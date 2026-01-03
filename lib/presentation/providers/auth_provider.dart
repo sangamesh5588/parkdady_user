@@ -176,6 +176,45 @@ class AuthNotifier extends StateNotifier<domain_user.User?> {
     }
   }
 
+  Future<void> resendVerificationEmail(String email) async {
+    try {
+      print('Resending verification email to: $email');
+      await SupabaseConfig.client.auth.resend(
+        type: supabase.OtpType.signup,
+        email: email,
+      );
+      print('Verification email resent successfully');
+    } catch (e) {
+      print('Error resending verification email: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> deleteAccount() async {
+    try {
+      final userId = SupabaseConfig.client.auth.currentUser?.id;
+      if (userId == null) {
+        throw Exception('No user logged in');
+      }
+
+      print('Deleting account for user: $userId');
+
+      // Call the database function to delete all user data
+      // This function deletes all associated data and the auth.users entry
+      await SupabaseConfig.client.rpc('delete_user_account', params: {
+        'user_id_to_delete': userId,
+      });
+
+      print('Account deletion successful');
+
+      // Clear local state
+      state = null;
+    } catch (e) {
+      print('Error deleting account: $e');
+      rethrow;
+    }
+  }
+
   // Listen to auth state changes
   void listenToAuthChanges() {
     SupabaseConfig.client.auth.onAuthStateChange.listen((data) async {

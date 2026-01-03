@@ -287,10 +287,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with TickerProvid
                     child: SizedBox(
                       width: double.infinity,
                       child: ElevatedButton.icon(
-                        onPressed: () async {
-                          final authNotifier = ref.read(authProvider.notifier);
-                          await authNotifier.signOut();
-                        },
+                        onPressed: () => _showSignOutDialog(context, ref),
                         icon: Icon(Icons.logout),
                         label: Text('Sign Out'),
                         style: ElevatedButton.styleFrom(
@@ -308,9 +305,347 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with TickerProvid
                 );
               },
             ),
+
+            SizedBox(height: AppConstants.spacing12),
+
+            // Delete account button with animation
+            AnimatedBuilder(
+              animation: _menuAnimationController,
+              builder: (context, child) {
+                final deleteAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+                  CurvedAnimation(
+                    parent: _menuAnimationController,
+                    curve: const Interval(0.75, 1.0, curve: Curves.easeOutCubic),
+                  ),
+                );
+
+                return Transform.translate(
+                  offset: Offset(0, 30 * (1 - deleteAnimation.value)),
+                  child: Opacity(
+                    opacity: deleteAnimation.value,
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: () => _showDeleteAccountDialog(context, ref),
+                        icon: Icon(Icons.delete_forever),
+                        label: Text('Delete Account'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Colors.red,
+                          side: BorderSide(color: Colors.red, width: 1.5),
+                          padding: EdgeInsets.symmetric(vertical: AppConstants.spacing16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(AppConstants.radius12),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
           ],
         );
       },
+    );
+  }
+
+  void _showSignOutDialog(BuildContext context, WidgetRef ref) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(Icons.logout, color: AppColors.ctaPrimary),
+            SizedBox(width: 12),
+            Text('Sign Out'),
+          ],
+        ),
+        content: Text(
+          'Are you sure you want to sign out?',
+          style: TextStyle(
+            fontSize: 16,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final scaffoldMessenger = ScaffoldMessenger.of(context);
+              final navigator = Navigator.of(context);
+
+              // Close the dialog
+              Navigator.pop(dialogContext);
+
+              // Show loading indicator
+              showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (context) => Center(
+                  child: Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24.0),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          CircularProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation<Color>(AppColors.ctaPrimary),
+                          ),
+                          SizedBox(height: 16),
+                          Text(
+                            'Signing out...',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              );
+
+              try {
+                final authNotifier = ref.read(authProvider.notifier);
+                await authNotifier.signOut();
+
+                // Close loading dialog
+                if (navigator.canPop()) {
+                  navigator.pop();
+                }
+
+                // Navigate to login screen and remove all previous routes
+                navigator.pushNamedAndRemoveUntil(
+                  '/login',
+                  (route) => false,
+                );
+
+                // Show success message
+                scaffoldMessenger.showSnackBar(
+                  SnackBar(
+                    content: Row(
+                      children: [
+                        Icon(Icons.check_circle, color: Colors.white),
+                        SizedBox(width: 12),
+                        Text('Signed out successfully'),
+                      ],
+                    ),
+                    backgroundColor: Colors.green,
+                    duration: const Duration(seconds: 2),
+                  ),
+                );
+              } catch (e) {
+                // Close loading dialog
+                if (navigator.canPop()) {
+                  navigator.pop();
+                }
+
+                // Show error message
+                scaffoldMessenger.showSnackBar(
+                  SnackBar(
+                    content: Row(
+                      children: [
+                        Icon(Icons.error, color: Colors.white),
+                        SizedBox(width: 12),
+                        Expanded(
+                          child: Text('Failed to sign out: ${e.toString()}'),
+                        ),
+                      ],
+                    ),
+                    backgroundColor: Colors.red,
+                    duration: const Duration(seconds: 4),
+                    action: SnackBarAction(
+                      label: 'Retry',
+                      textColor: Colors.white,
+                      onPressed: () => _showSignOutDialog(context, ref),
+                    ),
+                  ),
+                );
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Sign Out'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showDeleteAccountDialog(BuildContext context, WidgetRef ref) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(Icons.warning, color: Colors.red),
+            SizedBox(width: 12),
+            Text('Delete Account'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Are you sure you want to delete your account?',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            SizedBox(height: 12),
+            Text(
+              'This action cannot be undone. All your data including:',
+              style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
+            ),
+            SizedBox(height: 8),
+            _buildDeleteWarningItem('Profile information'),
+            _buildDeleteWarningItem('Booking history'),
+            _buildDeleteWarningItem('Payment methods'),
+            _buildDeleteWarningItem('Saved preferences'),
+            SizedBox(height: 12),
+            Text(
+              'will be permanently deleted.',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.red,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final scaffoldMessenger = ScaffoldMessenger.of(context);
+              final navigator = Navigator.of(context);
+
+              // Close the dialog
+              Navigator.pop(dialogContext);
+
+              // Show loading indicator
+              showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (context) => Center(
+                  child: Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24.0),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          CircularProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.red),
+                          ),
+                          SizedBox(height: 16),
+                          Text(
+                            'Deleting account...',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              );
+
+              try {
+                final authNotifier = ref.read(authProvider.notifier);
+                await authNotifier.deleteAccount();
+
+                // Close loading dialog
+                if (navigator.canPop()) {
+                  navigator.pop();
+                }
+
+                // Navigate to login screen and remove all previous routes
+                navigator.pushNamedAndRemoveUntil(
+                  '/login',
+                  (route) => false,
+                );
+
+                // Show success message
+                scaffoldMessenger.showSnackBar(
+                  SnackBar(
+                    content: Row(
+                      children: [
+                        Icon(Icons.check_circle, color: Colors.white),
+                        SizedBox(width: 12),
+                        Text('Account deleted successfully'),
+                      ],
+                    ),
+                    backgroundColor: Colors.green,
+                    duration: const Duration(seconds: 2),
+                  ),
+                );
+              } catch (e) {
+                // Close loading dialog
+                if (navigator.canPop()) {
+                  navigator.pop();
+                }
+
+                // Show error message
+                scaffoldMessenger.showSnackBar(
+                  SnackBar(
+                    content: Row(
+                      children: [
+                        Icon(Icons.error, color: Colors.white),
+                        SizedBox(width: 12),
+                        Expanded(
+                          child: Text('Failed to delete account: ${e.toString()}'),
+                        ),
+                      ],
+                    ),
+                    backgroundColor: Colors.red,
+                    duration: const Duration(seconds: 4),
+                    action: SnackBarAction(
+                      label: 'Retry',
+                      textColor: Colors.white,
+                      onPressed: () => _showDeleteAccountDialog(context, ref),
+                    ),
+                  ),
+                );
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Delete Account'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDeleteWarningItem(String text) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 8, top: 4),
+      child: Row(
+        children: [
+          Icon(Icons.circle, size: 6, color: AppColors.textSecondary),
+          SizedBox(width: 8),
+          Text(
+            text,
+            style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+          ),
+        ],
+      ),
     );
   }
 

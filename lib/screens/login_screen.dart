@@ -67,7 +67,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             password: _passwordController.text,
           );
 
-      // Navigation is handled by AuthWrapper
+      // Navigate to main app on successful login
+      if (!mounted) return;
+
+      Navigator.of(context).pushReplacementNamed('/main');
     } catch (e) {
       if (!mounted) return;
       _showError(e.toString().replaceAll('Exception: ', ''));
@@ -156,7 +159,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SizedBox(height: AppConstants.spacing64),
+                SizedBox(height: 50.0),
 
                 // Header
                 Row(
@@ -271,7 +274,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         ),
                       ),
 
-                      SizedBox(height: AppConstants.spacing24),
+                      SizedBox(height: AppConstants.spacing48),
 
                       // Social buttons
                       OutlinedButton.icon(

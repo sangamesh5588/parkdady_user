@@ -48,6 +48,34 @@ class _WebViewScreenState extends State<WebViewScreen> {
             setState(() {
               _isLoading = false;
             });
+            // Hide the website header/navigation/footer for a cleaner content-only view
+            _controller.runJavaScript('''
+              // Hide header navigation
+              var header = document.querySelector('header');
+              if (header) header.style.display = 'none';
+
+              // Hide navigation bar
+              var nav = document.querySelector('nav');
+              if (nav) nav.style.display = 'none';
+
+              // Hide footer
+              var footer = document.querySelector('footer');
+              if (footer) footer.style.display = 'none';
+
+              // Hide any element with class containing 'header', 'nav', or 'footer'
+              var elements = document.querySelectorAll('[class*="header"], [class*="Header"], [class*="nav"], [class*="Nav"], [class*="footer"], [class*="Footer"]');
+              elements.forEach(function(el) {
+                if (el.tagName !== 'MAIN' && el.tagName !== 'ARTICLE') {
+                  el.style.display = 'none';
+                }
+              });
+
+              // Adjust body padding/margin to remove gaps
+              document.body.style.paddingTop = '0';
+              document.body.style.marginTop = '0';
+              document.body.style.paddingBottom = '0';
+              document.body.style.marginBottom = '0';
+            ''');
           },
           onWebResourceError: (WebResourceError error) {
             debugPrint('WebView error: ${error.description}');

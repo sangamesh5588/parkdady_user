@@ -414,26 +414,58 @@ class _AboutScreenState extends ConsumerState<AboutScreen> {
     );
   }
 
-  void _openWebsite() {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => const WebViewScreen(
-          url: 'https://www.parkdady.com',
-          title: 'Park Daddy',
-        ),
-      ),
-    );
+  void _openWebsite() async {
+    final Uri url = Uri.parse('https://www.parkdady.com');
+    try {
+      if (await canLaunchUrl(url)) {
+        await launchUrl(url, mode: LaunchMode.externalApplication);
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Could not open website'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Error opening website'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
-  void _openContact() {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => const WebViewScreen(
-          url: 'https://www.parkdady.com/contact',
-          title: 'Contact Us',
-        ),
-      ),
-    );
+  void _openContact() async {
+    final Uri url = Uri.parse('https://www.parkdady.com/connect');
+    try {
+      if (await canLaunchUrl(url)) {
+        await launchUrl(url, mode: LaunchMode.externalApplication);
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Could not open contact page'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Error opening contact page'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   void _openEmail() async {
@@ -441,8 +473,24 @@ class _AboutScreenState extends ConsumerState<AboutScreen> {
       scheme: 'mailto',
       path: 'support@parkdaddy.com',
       queryParameters: {
-        'subject': 'Inquiry - Park Daddy App',
-        'body': 'Hi Park Daddy Team,\n\nI would like to inquire about:\n\n',
+        'subject': 'Support Request - Park Daddy App',
+        'body': '''Hello Park Daddy Support Team,
+
+I am reaching out regarding:
+[ ] Booking Issue
+[ ] Payment/Refund Query
+[ ] Account Help
+[ ] Technical Problem
+[ ] General Inquiry
+[ ] Other
+
+Details:
+
+
+Thank you for your assistance!
+
+Best regards,
+''',
       },
     );
 
@@ -474,30 +522,68 @@ class _AboutScreenState extends ConsumerState<AboutScreen> {
     }
   }
 
-  void _shareApp() async {
-    const appUrl = 'https://play.google.com/store/apps/details?id=com.parkdaddy';
-    const shareText = 'Check out Park Daddy - The Parking Boss! 🚗\n\nFind and book parking spaces easily with the best rates.\n\nDownload now: $appUrl';
+  void _shareApp() {
+    const appUrl = 'https://www.parkdady.com';
+    const shareText = 'Check out Park Daddy - The Parking Boss! 🚗\n\nFind and book parking spaces easily with the best rates.\n\nVisit: $appUrl';
 
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Share Park Daddy with friends!'),
-          action: SnackBarAction(
-            label: 'Copy Link',
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(Icons.share, color: AppColors.ctaPrimary),
+            SizedBox(width: 12),
+            Text('Share Park Daddy'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children:[ Text(
+              shareText,
+              style: const TextStyle(fontSize: 14, height: 1.5),
+            ),
+            SizedBox(height: 16),
+            Text(
+              'Tap below to copy the message and share with friends!',
+              style: TextStyle(
+                fontSize: 12,
+                color: AppColors.textSecondary,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton.icon(
             onPressed: () {
-              // In production, implement clipboard copy or share sheet
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Link copied to clipboard!'),
-                  duration: Duration(seconds: 2),
+              // Capture the ScaffoldMessenger before closing the dialog
+              final scaffoldMessenger = ScaffoldMessenger.of(context);
+              Navigator.pop(context);
+
+              // Show snackbar using captured messenger
+              scaffoldMessenger.showSnackBar(
+                SnackBar(
+                  content: const Text('Share Park Daddy with your friends via WhatsApp, SMS, or any app!'),
+                  backgroundColor: AppColors.ctaPrimary,
+                  duration: const Duration(seconds: 3),
                 ),
               );
             },
+            icon: const Icon(Icons.share),
+            label: const Text('Share Now'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.ctaPrimary,
+              foregroundColor: Colors.white,
+            ),
           ),
-          duration: const Duration(seconds: 4),
-        ),
-      );
-    }
+        ],
+      ),
+    );
   }
 
   Widget _buildLegalScreen({required String title, required Widget content}) {

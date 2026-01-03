@@ -10,6 +10,7 @@ import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../widgets/logo_widget.dart';
 import '../main_navigation.dart';
+import '../profile/web_view_screen.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -24,6 +25,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _passwordController = TextEditingController();
   bool _isPasswordVisible = false;
   bool _isLoading = false;
+  bool _agreedToTerms = false;
 
   @override
   void dispose() {
@@ -59,6 +61,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Future<void> _handleLogin() async {
+    if (!_agreedToTerms) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Please agree to the Terms and Privacy Policy to continue'),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+      return;
+    }
+
     if (_formKey.currentState!.validate()) {
       setState(() {
         _isLoading = true;
@@ -100,9 +113,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         // Provide more user-friendly error messages
         String errorMessage = 'Login failed';
         String errorDetails = e.toString().toLowerCase();
+        bool isEmailNotConfirmed = errorDetails.contains('email not confirmed') ||
+                                    errorDetails.contains('email_not_confirmed');
 
-        if (errorDetails.contains('invalid login credentials') ||
-            errorDetails.contains('email not confirmed')) {
+        if (isEmailNotConfirmed) {
+          errorMessage = 'Please verify your email address before logging in. Check your inbox for the verification link.';
+        } else if (errorDetails.contains('invalid login credentials')) {
           errorMessage = 'Invalid email or password. Please check your credentials.';
         } else if (errorDetails.contains('network') ||
                    errorDetails.contains('connection')) {
@@ -117,7 +133,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           SnackBar(
             content: Text(errorMessage),
             backgroundColor: Theme.of(context).colorScheme.errorContainer,
-            duration: const Duration(seconds: 5),
+            duration: const Duration(seconds: 6),
+            action: isEmailNotConfirmed
+                ? SnackBarAction(
+                    label: 'Resend',
+                    textColor: Colors.white,
+                    onPressed: () => _resendVerificationEmail(),
+                  )
+                : null,
           ),
         );
       }
@@ -125,52 +148,153 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Future<void> _handleGoogleSignIn() async {
+    if (!_agreedToTerms) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Please agree to the Terms and Privacy Policy to continue'),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+      return;
+    }
+
     try {
       setState(() => _isLoading = true);
 
+      // Call Google sign-in
       await ref.read(authProvider.notifier).signInWithGoogle();
 
       if (!mounted) return;
 
+      // Wait a moment for auth state to update
+      await Future.delayed(const Duration(milliseconds: 500));
+
+      if (!mounted) return;
+
+      // Check if user is actually authenticated
+      final user = ref.read(authProvider);
+
       setState(() => _isLoading = false);
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => const MainNavigation()),
-      );
+
+      if (user != null) {
+        // User successfully signed in, navigate to main app
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => const MainNavigation()),
+        );
+      } else {
+        // User cancelled or sign-in failed
+        print('Google sign-in cancelled or failed - user is null');
+      }
     } catch (e) {
       if (!mounted) return;
 
       setState(() => _isLoading = false);
+
+      // Only show error if it's not a cancellation
+      if (!e.toString().toLowerCase().contains('cancel')) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Google sign-in failed: ${e.toString()}'),
+            backgroundColor: Theme.of(context).colorScheme.errorContainer,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _resendVerificationEmail() async {
+    final email = _emailController.text.trim();
+
+    if (email.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Google sign-in failed: ${e.toString()}'),
-          backgroundColor: Theme.of(context).colorScheme.errorContainer,
+          content: const Text('Please enter your email address'),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+      return;
+    }
+
+    try {
+      await ref.read(authProvider.notifier).resendVerificationEmail(email);
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Verification email sent to $email. Please check your inbox.'),
+          backgroundColor: Colors.green,
+          duration: const Duration(seconds: 4),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to resend verification email: ${e.toString()}'),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 4),
         ),
       );
     }
   }
 
   Future<void> _handleAppleSignIn() async {
+    if (!_agreedToTerms) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Please agree to the Terms and Privacy Policy to continue'),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+      return;
+    }
+
     try {
       setState(() => _isLoading = true);
 
+      // Call Apple sign-in
       await ref.read(authProvider.notifier).signInWithApple();
 
       if (!mounted) return;
 
+      // Wait a moment for auth state to update
+      await Future.delayed(const Duration(milliseconds: 500));
+
+      if (!mounted) return;
+
+      // Check if user is actually authenticated
+      final user = ref.read(authProvider);
+
       setState(() => _isLoading = false);
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => const MainNavigation()),
-      );
+
+      if (user != null) {
+        // User successfully signed in, navigate to main app
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => const MainNavigation()),
+        );
+      } else {
+        // User cancelled or sign-in failed
+        print('Apple sign-in cancelled or failed - user is null');
+      }
     } catch (e) {
       if (!mounted) return;
 
       setState(() => _isLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Apple sign-in failed: ${e.toString()}'),
-          backgroundColor: Theme.of(context).colorScheme.errorContainer,
-        ),
-      );
+
+      // Only show error if it's not a cancellation
+      if (!e.toString().toLowerCase().contains('cancel')) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Apple sign-in failed: ${e.toString()}'),
+            backgroundColor: Theme.of(context).colorScheme.errorContainer,
+          ),
+        );
+      }
     }
   }
 
@@ -183,9 +307,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     return Scaffold(
       backgroundColor: AppColors.getSurfaceColor(context),
       body: AnnotatedRegion<SystemUiOverlayStyle>(
-        value: colorScheme.brightness == Brightness.dark
-            ? SystemUiOverlayStyle.light
-            : SystemUiOverlayStyle.dark,
+        value: const SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: Brightness.dark,
+          statusBarBrightness: Brightness.light,
+          systemNavigationBarColor: Colors.white,
+          systemNavigationBarIconBrightness: Brightness.dark,
+        ),
         child: SafeArea(
           child: SingleChildScrollView(
             padding: EdgeInsets.symmetric(horizontal: AppConstants.spacing24),
@@ -255,147 +383,233 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
                 SizedBox(height: AppConstants.spacing48),
 
-                // Form
-                Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      CustomTextField(
-                        label: 'Email',
-                        hintText: 'Enter your email',
-                        controller: _emailController,
-                        keyboardType: TextInputType.emailAddress,
-                        validator: _validateEmail,
-                        prefixIcon: const Icon(Icons.email_outlined),
-                      ),
+                // Form - HIDDEN (kept for future use)
+                Visibility(
+                  visible: false,
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        CustomTextField(
+                          label: 'Email',
+                          hintText: 'Enter your email',
+                          controller: _emailController,
+                          keyboardType: TextInputType.emailAddress,
+                          validator: _validateEmail,
+                          prefixIcon: const Icon(Icons.email_outlined),
+                        ),
 
-                      SizedBox(height: AppConstants.spacing16),
+                        SizedBox(height: AppConstants.spacing16),
 
-                      CustomTextField(
-                        label: 'Password',
-                        hintText: 'Enter your password',
-                        controller: _passwordController,
-                        obscureText: !_isPasswordVisible,
-                        validator: _validatePassword,
-                        prefixIcon: const Icon(Icons.lock_outline),
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _isPasswordVisible ? Icons.visibility_off : Icons.visibility,
-                            size: 20,
+                        CustomTextField(
+                          label: 'Password',
+                          hintText: 'Enter your password',
+                          controller: _passwordController,
+                          obscureText: !_isPasswordVisible,
+                          validator: _validatePassword,
+                          prefixIcon: const Icon(Icons.lock_outline),
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              _isPasswordVisible ? Icons.visibility_off : Icons.visibility,
+                              size: 20,
+                            ),
+                            onPressed: () => setState(() => _isPasswordVisible = !_isPasswordVisible),
                           ),
-                          onPressed: () => setState(() => _isPasswordVisible = !_isPasswordVisible),
+                        ),
+
+                        SizedBox(height: AppConstants.spacing16),
+
+                        // Forgot Password - Urban Company style
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: TextButton(
+                            onPressed: () {
+                              // TODO: Implement forgot password
+                            },
+                            style: TextButton.styleFrom(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: AppConstants.spacing12,
+                                vertical: AppConstants.spacing8,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(AppConstants.radius8),
+                              ),
+                            ),
+                            child: Text(
+                              'Forgot password?',
+                              style: TextStyle(
+                                color: AppColors.ctaPrimary,
+                                fontSize: AppConstants.fontSize14,
+                                fontWeight: AppConstants.fontWeightSemiBold,
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        SizedBox(height: AppConstants.spacing32),
+                      ],
+                    ),
+                  ),
+                ),
+
+                // Social Login Buttons - Official branding
+                Column(
+                  children: [
+                    // Google Sign In
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: _handleGoogleSignIn,
+                        style: OutlinedButton.styleFrom(
+                          padding: EdgeInsets.symmetric(vertical: AppConstants.spacing16),
+                          side: BorderSide(color: colorScheme.outline),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(AppConstants.radius12),
+                          ),
+                        ),
+                        icon: FaIcon(
+                          FontAwesomeIcons.google,
+                          size: AppConstants.fontSize18,
+                          color: const Color(0xFF4285F4), // Official Google blue
+                        ),
+                        label: Text(
+                          'Continue with Google',
+                          style: TextStyle(
+                            color: colorScheme.onSurface,
+                            fontSize: AppConstants.fontSize14,
+                            fontWeight: AppConstants.fontWeightMedium,
+                          ),
                         ),
                       ),
+                    ),
 
-                      SizedBox(height: AppConstants.spacing16),
+                    SizedBox(height: AppConstants.spacing12),
 
-                      // Forgot Password - Urban Company style
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: TextButton(
-                          onPressed: () {
-                            // TODO: Implement forgot password
-                          },
-                          style: TextButton.styleFrom(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: AppConstants.spacing12,
-                              vertical: AppConstants.spacing8,
-                            ),
+                    // Apple Sign In
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: _handleAppleSignIn,
+                        style: OutlinedButton.styleFrom(
+                          padding: EdgeInsets.symmetric(vertical: AppConstants.spacing16),
+                          side: BorderSide(color: colorScheme.outline),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(AppConstants.radius12),
+                          ),
+                        ),
+                        icon: FaIcon(
+                          FontAwesomeIcons.apple,
+                          size: AppConstants.fontSize18,
+                          color: colorScheme.onSurface, // Apple logo in black/white
+                        ),
+                        label: Text(
+                          'Continue with Apple',
+                          style: TextStyle(
+                            color: colorScheme.onSurface,
+                            fontSize: AppConstants.fontSize14,
+                            fontWeight: AppConstants.fontWeightMedium,
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    SizedBox(height: AppConstants.spacing24),
+
+                    // Terms and Privacy Policy Agreement
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(
+                          height: 24,
+                          width: 24,
+                          child: Checkbox(
+                            value: _agreedToTerms,
+                            onChanged: (value) {
+                              setState(() {
+                                _agreedToTerms = value ?? false;
+                              });
+                            },
+                            activeColor: AppColors.ctaPrimary,
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(AppConstants.radius8),
-                            ),
-                          ),
-                          child: Text(
-                            'Forgot password?',
-                            style: TextStyle(
-                              color: AppColors.ctaPrimary,
-                              fontSize: AppConstants.fontSize14,
-                              fontWeight: AppConstants.fontWeightSemiBold,
+                              borderRadius: BorderRadius.circular(4),
                             ),
                           ),
                         ),
-                      ),
-
-                      SizedBox(height: AppConstants.spacing32),
-
-                      // Social Login Buttons - Official branding
-                      Column(
-                        children: [
-                          // Google Sign In
-                          SizedBox(
-                            width: double.infinity,
-                            child: OutlinedButton.icon(
-                              onPressed: _handleGoogleSignIn,
-                              style: OutlinedButton.styleFrom(
-                                padding: EdgeInsets.symmetric(vertical: AppConstants.spacing16),
-                                side: BorderSide(color: colorScheme.outline),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(AppConstants.radius12),
-                                ),
-                              ),
-                              icon: FaIcon(
-                                FontAwesomeIcons.google,
-                                size: AppConstants.fontSize18,
-                                color: const Color(0xFF4285F4), // Official Google blue
-                              ),
-                              label: Text(
-                                'Continue with Google',
+                        SizedBox(width: AppConstants.spacing12),
+                        Expanded(
+                          child: Wrap(
+                            children: [
+                              Text(
+                                'I agree to the ',
                                 style: TextStyle(
-                                  color: colorScheme.onSurface,
                                   fontSize: AppConstants.fontSize14,
-                                  fontWeight: AppConstants.fontWeightMedium,
+                                  color: AppColors.getSecondaryText(context),
                                 ),
                               ),
-                            ),
-                          ),
-
-                          SizedBox(height: AppConstants.spacing12),
-
-                          // Apple Sign In
-                          SizedBox(
-                            width: double.infinity,
-                            child: OutlinedButton.icon(
-                              onPressed: _handleAppleSignIn,
-                              style: OutlinedButton.styleFrom(
-                                padding: EdgeInsets.symmetric(vertical: AppConstants.spacing16),
-                                side: BorderSide(color: colorScheme.outline),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(AppConstants.radius12),
+                              GestureDetector(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => const WebViewScreen(
+                                        url: 'https://www.parkdady.com/terms-of-service',
+                                        title: 'Terms of Service',
+                                      ),
+                                    ),
+                                  );
+                                },
+                                child: Text(
+                                  'Terms of Service',
+                                  style: TextStyle(
+                                    fontSize: AppConstants.fontSize14,
+                                    color: AppColors.ctaPrimary,
+                                    fontWeight: AppConstants.fontWeightSemiBold,
+                                    decoration: TextDecoration.underline,
+                                  ),
                                 ),
                               ),
-                              icon: FaIcon(
-                                FontAwesomeIcons.apple,
-                                size: AppConstants.fontSize18,
-                                color: colorScheme.onSurface, // Apple logo in black/white
-                              ),
-                              label: Text(
-                                'Continue with Apple',
+                              Text(
+                                ' and ',
                                 style: TextStyle(
-                                  color: colorScheme.onSurface,
                                   fontSize: AppConstants.fontSize14,
-                                  fontWeight: AppConstants.fontWeightMedium,
+                                  color: AppColors.getSecondaryText(context),
                                 ),
                               ),
-                            ),
+                              GestureDetector(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => const WebViewScreen(
+                                        url: 'https://www.parkdady.com/privacy-policy',
+                                        title: 'Privacy Policy',
+                                      ),
+                                    ),
+                                  );
+                                },
+                                child: Text(
+                                  'Privacy Policy',
+                                  style: TextStyle(
+                                    fontSize: AppConstants.fontSize14,
+                                    color: AppColors.ctaPrimary,
+                                    fontWeight: AppConstants.fontWeightSemiBold,
+                                    decoration: TextDecoration.underline,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
+                    ),
 
-                      SizedBox(height: AppConstants.spacing24),
+                    SizedBox(height: AppConstants.spacing32),
 
-                      // Sign In Button - Urban Company style
-                      CustomButton(
-                        text: 'Sign In',
-                        onPressed: _handleLogin,
-                        isLoading: _isLoading,
-                        icon: Icons.login,
-                      ),
-
-                      SizedBox(height: AppConstants.spacing32),
-
-                      // Sign Up link - Urban Company style
-                      Row(
+                    // Sign Up link - HIDDEN (kept for future use)
+                    Visibility(
+                      visible: false,
+                      child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
@@ -429,10 +643,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           ),
                         ],
                       ),
+                    ),
 
-                      SizedBox(height: AppConstants.spacing32),
-                    ],
-                  ),
+                    SizedBox(height: AppConstants.spacing32),
+                  ],
                 ),
               ],
             ),

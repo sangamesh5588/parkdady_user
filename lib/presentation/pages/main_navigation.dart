@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../widgets/bottom_navigation.dart';
 import 'home/home_screen.dart';
@@ -108,29 +109,38 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
-        // If not on home tab, switch to home tab first
-        if (_currentIndex != 0) {
-          setState(() {
-            _currentIndex = 0;
-          });
-          return false; // Don't allow system back
-        }
-        // If on home tab, allow system back (exit app)
-        return true;
-      },
-      child: Scaffold(
-        body: RepaintBoundary(
-          child: IndexedStack(
-            index: _currentIndex,
-            children: _screens,
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.dark,
+        statusBarBrightness: Brightness.light,
+        systemNavigationBarColor: Colors.white,
+        systemNavigationBarIconBrightness: Brightness.dark,
+      ),
+      child: WillPopScope(
+        onWillPop: () async {
+          // If not on home tab, switch to home tab first
+          if (_currentIndex != 0) {
+            setState(() {
+              _currentIndex = 0;
+            });
+            return false; // Don't allow system back
+          }
+          // If on home tab, allow system back (exit app)
+          return true;
+        },
+        child: Scaffold(
+          body: RepaintBoundary(
+            child: IndexedStack(
+              index: _currentIndex,
+              children: _screens,
+            ),
           ),
-        ),
-        bottomNavigationBar: RepaintBoundary(
-          child: BottomNavigation(
-            currentIndex: _currentIndex,
-            onTap: _onTabTapped,
+          bottomNavigationBar: RepaintBoundary(
+            child: BottomNavigation(
+              currentIndex: _currentIndex,
+              onTap: _onTabTapped,
+            ),
           ),
         ),
       ),

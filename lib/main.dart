@@ -88,6 +88,7 @@ class ParkingApp extends StatelessWidget {
       theme: _buildTheme(context),
       home: const ModernSplashScreen(),
       routes: {
+        '/main': (context) => const MainNavigation(),
         '/home': (context) => const MainNavigation(),
         '/search': (context) => const SearchScreen(),
         '/bookings': (context) => const BookingsScreen(),
