@@ -291,7 +291,7 @@ class _AboutScreenState extends ConsumerState<AboutScreen> {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => const WebViewScreen(
-          url: 'https://splendorous-strudel-cead22.netlify.app/terms/',
+          url: 'https://www.parkdady.com/terms-of-service',
           title: 'Terms of Service',
         ),
       ),
@@ -302,7 +302,7 @@ class _AboutScreenState extends ConsumerState<AboutScreen> {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => const WebViewScreen(
-          url: 'https://splendorous-strudel-cead22.netlify.app/privacy/',
+          url: 'https://www.parkdady.com/privacy-policy',
           title: 'Privacy Policy',
         ),
       ),
@@ -418,7 +418,7 @@ class _AboutScreenState extends ConsumerState<AboutScreen> {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => const WebViewScreen(
-          url: 'https://splendorous-strudel-cead22.netlify.app/',
+          url: 'https://www.parkdady.com',
           title: 'Park Daddy',
         ),
       ),
@@ -429,7 +429,7 @@ class _AboutScreenState extends ConsumerState<AboutScreen> {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => const WebViewScreen(
-          url: 'https://splendorous-strudel-cead22.netlify.app/contact/',
+          url: 'https://www.parkdady.com/contact',
           title: 'Contact Us',
         ),
       ),

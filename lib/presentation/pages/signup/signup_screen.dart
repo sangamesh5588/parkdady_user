@@ -396,7 +396,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                                           Navigator.of(context).push(
                                             MaterialPageRoute(
                                               builder: (context) => const WebViewScreen(
-                                                url: 'https://splendorous-strudel-cead22.netlify.app/terms/',
+                                                url: 'https://www.parkdady.com/terms-of-service',
                                                 title: 'Terms & Conditions',
                                               ),
                                             ),
@@ -420,7 +420,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                                           Navigator.of(context).push(
                                             MaterialPageRoute(
                                               builder: (context) => const WebViewScreen(
-                                                url: 'https://splendorous-strudel-cead22.netlify.app/privacy/',
+                                                url: 'https://www.parkdady.com/privacy-policy',
                                                 title: 'Privacy Policy',
                                               ),
                                             ),
