@@ -1,9 +1,11 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/colors.dart';
 import '../../../core/constants.dart';
 import '../../../core/supabase_config.dart';
 import '../../../core/permission_service.dart';
+import '../../../core/version_check_service.dart';
 import '../../../presentation/providers/auth_provider.dart';
 import '../main_navigation.dart';
 import '../login/login_screen.dart';
@@ -182,7 +184,26 @@ class _ModernSplashScreenState extends ConsumerState<ModernSplashScreen>
       setState(() => _statusText = 'Connecting to services...');
       await Future.delayed(const Duration(milliseconds: 800));
 
-      // Step 2: Check authentication status
+      // Step 2: Check for app updates (Android only)
+      if (Platform.isAndroid) {
+        setState(() => _statusText = 'Checking for updates...');
+        final versionResult = await VersionCheckService.checkForUpdate();
+
+        if (versionResult.needsUpdate && mounted) {
+          // Show update dialog
+          await VersionCheckService.showUpdateDialog(
+            context,
+            versionResult,
+          );
+
+          // If force update required, don't proceed
+          if (versionResult.status == VersionStatus.updateRequired) {
+            return;
+          }
+        }
+      }
+
+      // Step 3: Check authentication status
       setState(() => _statusText = 'Restoring session...');
 
       await Future.delayed(const Duration(milliseconds: 1200));

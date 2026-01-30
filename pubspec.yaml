@@ -72,6 +72,9 @@ dependencies:
   # Permissions
   permission_handler: ^11.3.1
 
+  # Package info (for version checking)
+  package_info_plus: ^8.0.0
+
   # Time and date handling
   intl: ^0.19.0
 
